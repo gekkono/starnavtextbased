@@ -6,7 +6,7 @@ import numpy as np
 from colorama import just_fix_windows_console
 just_fix_windows_console()
 from termcolor import *
-import pygame
+# import pygame?
 
 consonants = list('BCDFGHJKLMNPQRSTVWXYZ')
 vowels = list('AEIOU')
@@ -283,7 +283,7 @@ def go():
 #     proc.terminate()
 
 divsectors2D()
-print(f'\n\n\nCREATING {c(starTarget,'light_magenta')} STARS\nPLEASE WAIT\n\n\n')
+print(f'\n\n\nCREATING {c(starTarget,"light_magenta")} STARS\nPLEASE WAIT\n\n\n')
 gen()
 whereami(True)
 print(roughmap())
