@@ -16,6 +16,7 @@ err = lambda txt: cprint(txt,'white','on_light_red')
 
 cprint('running COLORAMA','light_cyan')
 
+
 # config ============
 starTarget = 200000
 dim3 = False
