@@ -14,6 +14,8 @@ c = lambda t,col,back=None: colored(t,col,back)
 scol: str = 'light_cyan'; ccol: str = 'light_green'; stcol: str = 'light_yellow'
 err = lambda txt: cprint(txt,'white','on_light_red')
 
+cprint('running COLORAMA','light_cyan')
+
 # config ============
 starTarget = 200000
 dim3 = False
