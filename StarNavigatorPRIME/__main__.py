@@ -17,9 +17,10 @@ err = lambda txt: cprint(txt,'white','on_light_red')
 cprint('running COLORAMA','light_cyan')
 
 # config ============
-starTarget = 200000
+starTarget = 1000000
 dim3 = False
 galaxydim = 36500000
+# 36500000 is the default
 divfactor = 0.1
 # galaxyheight = 4000
 playercoords = [1,1]
