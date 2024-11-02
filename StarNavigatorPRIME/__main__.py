@@ -8,6 +8,8 @@ just_fix_windows_console()
 from termcolor import *
 import pygame
 import multiprocessing
+import inflect
+inflectengine = inflect.engine()
 
 consonants = list('BCDFGHJKLMNPQRSTVWXYZ')
 vowels = list('AEIOU')
@@ -17,20 +19,20 @@ err = lambda txt: cprint(txt,'white','on_light_red')
 
 cprint('''\n\n\n
 this program is running the following (external) libraries:\n
-NUMPY\n
-COLORAMA\n
-PYGAME\n
+NUMPY
+COLORAMA
+PYGAME
 ''','light_cyan')
 
 # config ============
-starTarget = 1000000
+starTarget = 10000000
 dim3 = False
-galaxydim = 36500000
-# 36500000 is the default
-divfactor = 0.1
+galaxydim = 1000  # in LIGHT DAYS. the milky way is about 36500000 LD across but we round up
+# 40000000 is the default
+divfactor = 0.12
 # galaxyheight = 4000
 playercoords = [1,1]
-debug = False
+debug = True
 # end config ========
 class Star:
     def __init__(self):
@@ -88,26 +90,6 @@ def dist2D(coords1, coords2):
     return math.sqrt((coords2[0] - coords1[0]) ** 2 + (coords2[1] - coords1[1]) ** 2)
 
 
-starObjects = []
-def gen(returner,starstomake):
-    starsmade = []  # stars made by THIS proc (for multiproc)
-    for i in range(int(starstomake)):
-        star = Star()
-        if debug: print(star.name, ' number: ', len(starObjects), ' of: ', starTarget)
-        starsmade.append(star)
-        # for s in sectors:  # MOVED TO distributestars() below
-        #     if s.head[0] >= star.x > s.corner[0] and s.head[1] >= star.y > s.corner[1]:  # head/corner is [x,y]
-        #         s.stars.append(star)
-    returner.append(starsmade)
-
-
-def distributestars():
-    for star in starObjects:
-        for s in sectors:
-            if s.head[0] >= star.x > s.corner[0] and s.head[1] >= star.y > s.corner[1]:  # head/corner is [x,y]
-                s.stars.append(star)
-
-sectors = []
 sectorside, secperside = 0, 0
 def divsectors2D():
     global sectorside, secperside  # declared global because i have to for some reason
@@ -268,54 +250,111 @@ def go():
             mysector = sectors[whereami(True)]
         except: err(' ! INVALID SECTOR !')
 
-print(f'\n\n\nCREATING {c(starTarget,"light_magenta")} STARS\nPLEASE WAIT\n\n\n')
+starObjects = []
+def gen(returner,starstomake,procnum):
+    starsmade = []  # stars made by THIS proc (for multiproc)
+    for i in range(int(starstomake)):
+        star = Star()
+        # if debug: print(star.name, ' number: ', len(starsmade), ' of: ', starTarget)
+        starsmade.append(star)
+    returner.append(starsmade)
+    print(f'****this is gen proc number {procnum} closing without issue')
 
+
+def distributestars(procnum,returned):  # probably won't be needing this again -me before using it again
+    receivedsectors = sectors
+    # figure out which sectors we work on
+    sectorcount = len(sectors)
+    findstep = int(sectorcount/8)
+    startat = int(findstep*procnum)
+    if procnum != 7: reduc = -1
+    else: reduc = 0
+    workingsectors = receivedsectors[startat : (startat+findstep)]
+    # print(f'>>>>i am process number {procnum} reporting: step {findstep} starting at {startat} ending at {startat+findstep}')
+
+    for star in returned[procnum]:
+        for s in workingsectors:
+            if s.head[0] >= star.x > s.corner[0] and s.head[1] >= star.y > s.corner[1]:  # head/corner is [x,y]
+                s.stars.append(star)
+    # we have a chunk of sectors. now we must give it to the manager
+    managed_sectorchunks[procnum] = workingsectors
+
+    print(f'////this is distrib proc number {procnum} closing without issue')
+
+numprocs = 8
 if __name__ == '__main__':
     # freeze_support()
+    manager = multiprocessing.Manager()
+    return_list = manager.list()
+    sectors = manager.list()
     divsectors2D()
     print('\n.  .  .\n')
     mysector = sectors[whereami()]
-    print('\n\n\nSPAWNING', c(starTarget, 'light_magenta'), 'STARS\nPLEASE WAIT\n\n\n')
-    manager = multiprocessing.Manager()
-    return_list = manager.list()
+    print('\n\n\nCREATING', c(starTarget, 'light_magenta'),
+          'STARS\nPLEASE WAIT\n'
+    f'(in words, that is {inflectengine.number_to_words(starTarget)} stars)\n\n\n')
+
     jobs = []
-    for i in range(4):
-        p = multiprocessing.Process(target=gen, args=(return_list,(int(starTarget/4))))
+    for i in range(numprocs):
+        p = multiprocessing.Process(target=gen, args=(return_list,(int(starTarget/numprocs)),i))
         jobs.append(p)
         p.start()
-        print(f'started proc {i} with {starTarget/4} stars to make')
-
+        print(f'started proc {i} with {int(starTarget/numprocs)} stars to make')
     processing = True
     procsdead = 0
     while processing:
-        time.sleep(5)
+        time.sleep(2)
         for proc in jobs:
             if proc.is_alive():
                 processing = True
-            else: procsdead += 1
-        print(procsdead,'procs have ended')
-        if procsdead == 4:
-            processing = False; print('multiprocs closed')
+            else:
+                procsdead += 1
+        if procsdead == numprocs:
+            processing = False; print('****generation multiprocs closed')
         else: procsdead = 0
     for proc in jobs:
         proc.join()
 
-    # for i in return_list:
-    #     print(i,'\n')
-    print(len(return_list),'lists have been returned by the procs (should be = num of procs)')
-    flat_list = [  # https://stackoverflow.com/questions/952914/how-do-i-make-a-flat-list-out-of-a-list-of-lists?page=1&tab=scoredesc#tab-top
+    managed_sectorchunks = manager.list([[],[],[],[],[],[],[],[]])
+    # the distrib processes will dump their results into their slot, index designated by procnum
+    # this makes sure that the sectors are in order and do not get mixed up
+    # we boil them down later
+
+    jobs = []
+    for i in range(numprocs):
+        p = multiprocessing.Process(target=distributestars,
+                                    args=(i,return_list))
+        jobs.append(p)
+        p.start()
+        print(f'started proc {i} to distribute some stars')
+
+    processing = True
+    procsdead = 0
+    while processing:
+        time.sleep(2)
+        for proc in jobs:
+            if proc.is_alive():
+                processing = True
+            else:
+                procsdead += 1
+        if procsdead == numprocs:
+            processing = False; print('////distribution multiprocs closed')
+        else:
+            procsdead = 0
+    for proc in jobs:
+        proc.join()
+
+    # now we need to boil down those sectors into one big list again
+    sectors = [  # https://stackoverflow.com/questions/952914/how-do-i-make-a-flat-list-out-of-a-list-of-lists?page=1&tab=scoredesc#tab-top
         x
-        for xs in return_list
+        for xs in managed_sectorchunks
         for x in xs
     ]
-    print(len(flat_list),'stars have been made')
-    for star in flat_list:
-        starObjects.append(star)
-    distributestars()
+    print(len(sectors),'sectors filled with stars!')
 
-# divsectors2D()
-# print(f'\n\n\nCREATING {c(starTarget,"light_magenta")} STARS\nPLEASE WAIT\n\n\n')
-# gen()
+    print(c('\nGENERATION PHASE COMPLETED','light_magenta'))
+    del starObjects, managed_sectorchunks, return_list, manager, jobs, processing, procsdead  # save some ram
+
 whereami(True)
 print(roughmap())
 
