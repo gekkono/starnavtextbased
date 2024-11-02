@@ -6,7 +6,8 @@ import numpy as np
 from colorama import just_fix_windows_console
 just_fix_windows_console()
 from termcolor import *
-# import pygame?
+import pygame
+import multiprocessing
 
 consonants = list('BCDFGHJKLMNPQRSTVWXYZ')
 vowels = list('AEIOU')
@@ -29,6 +30,7 @@ galaxydim = 36500000
 divfactor = 0.1
 # galaxyheight = 4000
 playercoords = [1,1]
+debug = False
 # end config ========
 class Star:
     def __init__(self):
@@ -39,7 +41,7 @@ class Star:
         if self.y > galaxydim: self.y = galaxydim - rint(100, 2000)
         if self.y < -galaxydim: self.y = -galaxydim + rint(100, 2000)
         # NOTICE: our galactic coords are in LIGHT DAYS, not light YEARS!
-        # if dim3:
+        # if dim3:  # lol that's never gonna happen
         #     self.z = random.gauss(0, 1000)
         #     if self.z > galaxyheight: self.z = galaxyheight - rint(100, 2000)
         #     if self.z < -galaxyheight: self.z = -galaxyheight - rint(100, 2000)
@@ -87,16 +89,23 @@ def dist2D(coords1, coords2):
 
 
 starObjects = []
-def gen(starstomake=starTarget,m=False):
-    if not m:
-        for i in range(int(starstomake)):
-            star = Star()
-            # print(star.name, ' number: ', len(starObjects), ' of: ', starTarget)
-            starObjects.append(star)
-            for s in sectors:
-                if s.head[0] >= star.x > s.corner[0] and s.head[1] >= star.y > s.corner[1]:  # head/corner is [x,y]
-                    s.stars.append(star)
-    else: pass
+def gen(returner,starstomake):
+    starsmade = []  # stars made by THIS proc (for multiproc)
+    for i in range(int(starstomake)):
+        star = Star()
+        if debug: print(star.name, ' number: ', len(starObjects), ' of: ', starTarget)
+        starsmade.append(star)
+        # for s in sectors:  # MOVED TO distributestars() below
+        #     if s.head[0] >= star.x > s.corner[0] and s.head[1] >= star.y > s.corner[1]:  # head/corner is [x,y]
+        #         s.stars.append(star)
+    returner.append(starsmade)
+
+
+def distributestars():
+    for star in starObjects:
+        for s in sectors:
+            if s.head[0] >= star.x > s.corner[0] and s.head[1] >= star.y > s.corner[1]:  # head/corner is [x,y]
+                s.stars.append(star)
 
 sectors = []
 sectorside, secperside = 0, 0
@@ -259,44 +268,59 @@ def go():
             mysector = sectors[whereami(True)]
         except: err(' ! INVALID SECTOR !')
 
-# p1 = multiprocessing.Process(target=gen,args=(starTarget/4,))
-# p2 = multiprocessing.Process(target=gen,args=(starTarget/4,))
-# p3 = multiprocessing.Process(target=gen,args=(starTarget/4,))
-# p4 = multiprocessing.Process(target=gen,args=(starTarget/4,))
-# procs = [p1,p2,p3,p4]
-# if __name__ == '__main__':
-#     freeze_support()
-#     divsectors2D()
-#     print('\n.  .  .\n')
-#     mysector = sectors[whereami()]
-#     print('\n\n\nSPAWNING', c(starTarget, 'light_magenta'), 'STARS\nPLEASE WAIT\n\n\n')
-#     for proc in procs:
-#         proc.start(); print('started',proc)
-#     for proc in procs:
-#         proc.join(); print('join',proc)
-
-# processing = True
-# procsdead = 0
-# while processing:
-#     time.sleep(5)
-#     for proc in procs:
-#         if proc.is_alive():
-#             processing = True
-#         else: procsdead += 1
-#     print(procsdead)
-#     if procsdead == 4:
-#         processing = False; print('broke loop')
-#     else: procsdead = 0
-# for proc in procs:
-#     proc.terminate()
-
-divsectors2D()
 print(f'\n\n\nCREATING {c(starTarget,"light_magenta")} STARS\nPLEASE WAIT\n\n\n')
-gen()
+
+if __name__ == '__main__':
+    # freeze_support()
+    divsectors2D()
+    print('\n.  .  .\n')
+    mysector = sectors[whereami()]
+    print('\n\n\nSPAWNING', c(starTarget, 'light_magenta'), 'STARS\nPLEASE WAIT\n\n\n')
+    manager = multiprocessing.Manager()
+    return_list = manager.list()
+    jobs = []
+    for i in range(4):
+        p = multiprocessing.Process(target=gen, args=(return_list,(int(starTarget/4))))
+        jobs.append(p)
+        p.start()
+        print(f'started proc {i} with {starTarget/4} stars to make')
+
+    processing = True
+    procsdead = 0
+    while processing:
+        time.sleep(5)
+        for proc in jobs:
+            if proc.is_alive():
+                processing = True
+            else: procsdead += 1
+        print(procsdead,'procs have ended')
+        if procsdead == 4:
+            processing = False; print('multiprocs closed')
+        else: procsdead = 0
+    for proc in jobs:
+        proc.join()
+
+    # for i in return_list:
+    #     print(i,'\n')
+    print(len(return_list),'lists have been returned by the procs (should be = num of procs)')
+    flat_list = [  # https://stackoverflow.com/questions/952914/how-do-i-make-a-flat-list-out-of-a-list-of-lists?page=1&tab=scoredesc#tab-top
+        x
+        for xs in return_list
+        for x in xs
+    ]
+    print(len(flat_list),'stars have been made')
+    for star in flat_list:
+        starObjects.append(star)
+    distributestars()
+
+# divsectors2D()
+# print(f'\n\n\nCREATING {c(starTarget,"light_magenta")} STARS\nPLEASE WAIT\n\n\n')
+# gen()
 whereami(True)
 print(roughmap())
 
-while True:
+termrunning = True
+while termrunning:
     print('- - - - - - - -')
     func = input('> ')
     if func == 'help':
