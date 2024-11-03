@@ -25,9 +25,9 @@ PYGAME
 ''','light_cyan')
 
 # config ============
-starTarget = 10000000
+starTarget = 20000000
 dim3 = False
-galaxydim = 6400  # in LIGHT DAYS. the milky way is about 36500000 LD across but we "round up"
+galaxydim = 40000000  # in LIGHT DAYS. the milky way is about 36500000 LD across but we "round up"
 # 40000000 is the default
 divfactor = 0.12
 # galaxyheight = 4000
@@ -301,7 +301,7 @@ if __name__ == '__main__':
     processing = True
     procsdead = 0
     while processing:
-        time.sleep(2)
+        time.sleep(5)
         for proc in jobs:
             if proc.is_alive():
                 processing = True
@@ -313,7 +313,7 @@ if __name__ == '__main__':
     time.sleep(2)
     for proc in jobs:
         proc.join()
-
+    time.sleep(2)
     managed_sectorchunks = manager.list([[],[],[],[],[],[],[],[]])
     # the distrib processes will dump their results into their slot, index designated by procnum
     # this makes sure that the sectors are in order and do not get mixed up
@@ -330,7 +330,7 @@ if __name__ == '__main__':
     processing = True
     procsdead = 0
     while processing:
-        time.sleep(2)
+        time.sleep(5)
         for proc in jobs:
             if proc.is_alive():
                 processing = True
