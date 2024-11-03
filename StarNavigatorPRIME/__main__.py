@@ -314,7 +314,7 @@ if __name__ == '__main__':
     for proc in jobs:
         proc.join()
     time.sleep(2)
-    managed_sectorchunks = manager.list([[],[],[],[],[],[],[],[]])
+    managed_sectorchunks = manager.list([[],[],[],[],[],[],[],[],[],[],[],[]])
     # the distrib processes will dump their results into their slot, index designated by procnum
     # this makes sure that the sectors are in order and do not get mixed up
     # we boil them down later
