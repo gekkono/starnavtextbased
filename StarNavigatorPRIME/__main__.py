@@ -25,7 +25,7 @@ PYGAME
 ''','light_cyan')
 
 # config ============
-starTarget = 1000000
+starTarget = 10000000
 dim3 = False
 galaxydim = 6400  # in LIGHT DAYS. the milky way is about 36500000 LD across but we "round up"
 # 40000000 is the default
@@ -279,7 +279,7 @@ def distributestars(procnum,returned):  # probably won't be needing this again -
     managed_sectorchunks[procnum] = workingsectors
     print(f'////this is distrib proc number {procnum} closing without issue')
 
-numprocs = 8
+numprocs = 12
 if __name__ == '__main__':
     # freeze_support()
     manager = multiprocessing.Manager()
