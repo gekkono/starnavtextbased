@@ -25,9 +25,9 @@ PYGAME
 ''','light_cyan')
 
 # config ============
-starTarget = 10000000
+starTarget = 1000000
 dim3 = False
-galaxydim = 1000  # in LIGHT DAYS. the milky way is about 36500000 LD across but we round up
+galaxydim = 6400  # in LIGHT DAYS. the milky way is about 36500000 LD across but we "round up"
 # 40000000 is the default
 divfactor = 0.12
 # galaxyheight = 4000
@@ -271,14 +271,12 @@ def distributestars(procnum,returned):  # probably won't be needing this again -
     else: reduc = 0
     workingsectors = receivedsectors[startat : (startat+findstep)]
     # print(f'>>>>i am process number {procnum} reporting: step {findstep} starting at {startat} ending at {startat+findstep}')
-
     for star in returned[procnum]:
         for s in workingsectors:
             if s.head[0] >= star.x > s.corner[0] and s.head[1] >= star.y > s.corner[1]:  # head/corner is [x,y]
                 s.stars.append(star)
-    # we have a chunk of sectors. now we must give it to the manager
+    # we have a chunk of sectors processed. now we must give it to the manager
     managed_sectorchunks[procnum] = workingsectors
-
     print(f'////this is distrib proc number {procnum} closing without issue')
 
 numprocs = 8
@@ -312,6 +310,7 @@ if __name__ == '__main__':
         if procsdead == numprocs:
             processing = False; print('****generation multiprocs closed')
         else: procsdead = 0
+    time.sleep(2)
     for proc in jobs:
         proc.join()
 
@@ -341,11 +340,12 @@ if __name__ == '__main__':
             processing = False; print('////distribution multiprocs closed')
         else:
             procsdead = 0
+    time.sleep(2)
     for proc in jobs:
         proc.join()
 
     # now we need to boil down those sectors into one big list again
-    sectors = [  # https://stackoverflow.com/questions/952914/how-do-i-make-a-flat-list-out-of-a-list-of-lists?page=1&tab=scoredesc#tab-top
+    sectors = [
         x
         for xs in managed_sectorchunks
         for x in xs
