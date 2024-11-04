@@ -73,22 +73,43 @@ class Station:
         self.starobj = starobj
         self.planet = planet
 
-# noinspection PyTypeChecker  lol
-def indexFind(n):
-    indexfound = []
-    for x in range(len(starObjects)):
-        if n in starObjects[x].name:
-            cprint(starObjects[x].name,stcol)
-            cprint(f'{starObjects[x].x}\n{starObjects[x].y}',ccol)
-            print(f'found {n} after {x+1} tries')
-            indexfound.append(starObjects[x])
-    print(f'found {len(indexfound)} instance(s) of {n}')
-    return indexfound
-
-def dist2D(coords1, coords2):
-    # it looks scary but don't worry it's just a plug and chug
+# begin builtin functions
+# these are intended to be used by the base game and shouldn't be modified or moved
+def dist2D(coords1, coords2):  # it looks scary but don't worry it's just a plug and chug
     return math.sqrt((coords2[0] - coords1[0]) ** 2 + (coords2[1] - coords1[1]) ** 2)
 
+def seccoordget(coords):
+    try:  # find which sector a set of coords is in
+        for s in sectors:
+            if s.head[0] >= coords[0] > s.corner[0] and s.head[1] >= coords[1] > s.corner[1]:
+                return s
+    except:
+        err(' ! INVALID SECTOR !')
+        return None
+
+def whereami(p=False):
+    global mysector
+    success = False
+    print('YOU ARE AT:', c(playercoords, ccol))
+    for s in sectors:
+        if s.head[0] >= playercoords[0] > s.corner[0] and s.head[1] >= playercoords[1] > s.corner[1]:  # head/corner is [x,y]
+            mysector = s
+            success = True
+            break
+    if not success:
+        mysector = None
+    if p:
+        try:
+            print('\nIN SECTOR', c(mysector.number, scol))
+            print('SECTOR BOUNDS:',c(f'{sectors[mysector.number].corner} {sectors[mysector.number].head}',scol))
+        except:
+            err(' ! INVALID SECTOR !')
+    try: return mysector.number
+    except: return None
+
+# end builtin functions ------------------------------------------------------------------------------
+# begin worldgen functions
+# these shouldn't be touched at all, even by me
 
 sectorside, secperside = 0, 0
 def divsectors2D():
@@ -116,140 +137,6 @@ sectorside  - {sectorside} (galaxydim/{divfactor})
 secperside  - {secperside}
     ''')
 
-def whereami(p=False):
-    global mysector
-    success = False
-    print('YOU ARE AT:', c(playercoords, ccol))
-    for s in sectors:
-        if s.head[0] >= playercoords[0] > s.corner[0] and s.head[1] >= playercoords[1] > s.corner[1]:  # head/corner is [x,y]
-            mysector = s
-            success = True
-            break
-    if not success:
-        mysector = None
-    if p:
-        try:
-            print('\nIN SECTOR', c(mysector.number, scol))
-            print('SECTOR BOUNDS:',c(f'{sectors[mysector.number].corner} {sectors[mysector.number].head}',scol))
-        except:
-            err(' ! INVALID SECTOR !')
-    try: return mysector.number
-    except: return None
-
-def readsec(sec,p=False):
-    num = sec.number
-    center = [sectors[num].corner[0] + (sectorside / 2),
-    sectors[num].corner[1] + (sectorside / 2)]
-    if p:
-        while True:
-            print(f'''
-    SECTOR NUMBER {c(sectors[num].number,scol)}
-    STARS : {c(len(sectors[num].stars),stcol)}
-    CORNER: {c(sectors[num].corner,scol)}
-    HEAD  : {c(sectors[num].head,scol)}
-    CENTER: {c(center,scol)}\n
-    DISTANCE FROM CORNER: {dist2D(playercoords
-                    , sectors[num].corner)}
-    DISTANCE FROM HEAD  : {dist2D(playercoords
-                    , sectors[num].head)}
-    DISTANCE FROM CENTER: {dist2D(playercoords,center)}\n
-    [L] for list of stars, [I] to search the index, else [B]ack
-                        ''')
-            func = input('> ')
-            if func == 'L':
-                listsecstars(num)
-            if func == 'I':
-                indexFind(input('> '))
-            if func == 'B':
-                break
-    if not p:
-        return len(sectors[num].stars)
-
-def seccoordget(coords):
-    try:
-        for s in sectors:
-            if s.head[0] >= coords[0] > s.corner[0] and s.head[1] >= coords[1] > s.corner[1]:
-                return s
-    except:
-        err(' ! INVALID SECTOR !')
-
-# noinspection PyTypeChecker
-def secfinder():
-    global mysector
-    whereami()
-    try:
-        print('CURRENTLY AT SECTOR', c(mysector.number, scol))
-    except:
-        err(' ! INVALID SECTOR !')
-    cprint('[C]oord OR [N]umber or [ENTER] for current', ccol)
-    func = input('> ')
-    if func == 'C':
-        print('INPUT COORDS')
-        findertargetX = int(input('X = '))
-        findertargetY = int(input('Y = '))
-        target = [findertargetX, findertargetY]
-        print('TARGET SECTOR:', c(seccoordget(target),scol))
-
-        return seccoordget(target)
-    if func == 'N':
-        # noinspection PyTypeChecker
-        cprint('INPUT SECTOR NUMBER', ccol)
-        num = int(input('> '))
-        try: return sectors[num]
-        except: err(' ! INVALID SECTOR !')
-    else:
-        try: return mysector
-        except:
-            err(' ! INVALID SECTOR !')
-            mysector = None
-
-def listsecstars(sec):
-    try:
-        cprint('________________________________________','dark_grey')
-        for star in sectors[sec].stars:
-            print('    ', c(star.name,stcol),'\n',
-                  star.x,'\n',star.y)
-        print('\n',len(sectors[sec].stars),'STARS IN SECTOR')
-    except: err(' ! INVALID SECTOR !')
-
-def roughmap():
-    global mysector, secperside
-    secarray = np.empty((secperside,secperside))
-    p = 0
-    for y in range(secperside):
-        for x in range(secperside):
-            # if mysector.number == p:  TODO mark location on textmap
-            #     print('found it',mysector.number,p)
-            # secarray[x,y] = c(len(sectors[p].stars),ccol)
-            # else:
-            secarray[x,y] = len(sectors[p].stars)
-            p += 1
-    secarray = np.flip(secarray, axis=0)
-    return secarray
-
-# noinspection PyTypeChecker
-def go():
-    global playercoords, mysector
-    cprint(f'WORLD BOUNDS:{[-galaxydim/2,-galaxydim/2]},{[galaxydim/2,galaxydim/2]}',ccol)
-    cprint('INPUT DESIRED LOCATION',ccol)
-    gotoX = float(input('X = '))
-    gotoY = float(input('Y = '))
-    goto = [gotoX,gotoY]
-    target = seccoordget(goto)
-    try:
-        print(f'TARGET SECTOR: {c(target.number,scol)}\n'
-              f'TARGET STARS: {c(len(target.stars),stcol)}')
-    except: err(' ! INVALID SECTOR !')
-    LD = dist2D(playercoords,goto)
-    print(LD,'LD AWAY\nor',LD/365,'LY AWAY\n',
-          c('to GO, type CONFIRM','white','on_magenta'))
-    confirmation = input('\n>>    ')
-    if confirmation == 'CONFIRM':
-        playercoords = goto
-        try:
-            mysector = sectors[whereami(True)]
-        except: err(' ! INVALID SECTOR !')
-
 starObjects = []
 def gen(returner,starstomake,procnum):
     starsmade = []  # stars made by THIS proc (for multiproc)
@@ -259,7 +146,6 @@ def gen(returner,starstomake,procnum):
         starsmade.append(star)
     returner.append(starsmade)
     print(f'****this is gen proc number {procnum} closing without issue')
-
 
 def distributestars(procnum,returned):  # probably won't be needing this again -me before using it again
     receivedsectors = sectors
@@ -279,6 +165,8 @@ def distributestars(procnum,returned):  # probably won't be needing this again -
     managed_sectorchunks[procnum] = workingsectors
     print(f'////this is distrib proc number {procnum} closing without issue')
 
+# end worldgen functions ------------------------------------------------------------------------------
+# begin generation
 numprocs = 12
 if __name__ == '__main__':
     # freeze_support()
@@ -355,9 +243,10 @@ if __name__ == '__main__':
     print(c('\nGENERATION PHASE COMPLETED','light_magenta'))
     del starObjects, managed_sectorchunks, return_list, manager, jobs, processing, procsdead  # save some ram
 
-whereami(True)
-print(roughmap())
+# whereami(True)
+# print(roughmap())
 
+# end game generation ------------------------------------------------------------------------------
 termrunning = True
 while termrunning:
     print('- - - - - - - -')
@@ -381,136 +270,8 @@ createstar.......- create a system at your current point
 prunestars.......- remove some random stars
 killstar.........- murder a specific star
         ''','light_magenta')
-    if func == 'genstars':
-        gen(int(input(c('STARS TO GENERATE','light_magenta')+'\n'+'> ')))
-        cprint('GENSTAR PROC DONE','light_magenta')
-    if func == 'prunestars':
-        for x in range(int(input(c('NUMBER OF STARS TO PRUNE','light_red')+'\n'+'> '))):
-            try:
-                s = random.choice(sectors)#; print(s.number,len(s.stars)-1)
-                y = s.stars[len(s.stars)-1]#; print(y)
-                s.stars.remove(y)#; print('removed ', y)
-            except:
-                pass
-    if func == 'where':
-        whereami(True)
-    if func == 'galmap':
-        print(roughmap())
-    if func == 'go':
-        go()
-    if func == 'stations':
-        mysector = sectors[whereami()]
-    if func == 'secread':
-        readsec(secfinder(),True)
-    if func == 'find':
-        cprint('INPUT STRING < OR = 32 CHARS')
-        indexFind(input('> '))
-
-# todo: make dist less stupid!!!!!!!!!!!!!!!!!!!!
-    if func == 'dist':
-        while True:
-            print(f'''
-    FIRST POINT
-    {c('[ENTER] for here',ccol)}
-    {c('[S] for system (star)',stcol)}
-    {c('[C] for sector (rough)',scol)}
-    [E] to manually enter
-    [B] to escape this program
-    ''')
-            func = input('> ')
-            if func == 'S':
-                while True:
-                    first = indexFind(input(''))
-                    if len(first) > 1:
-                        print('TOO MANY RESULTS: ',len(first))
-                        print('[R]etry OR BACK')
-                        func = input('> ')
-                        if func == 'R':
-                            print('RERUNNING')
-                        else:
-                            break
-                    elif len(first) == 1:
-                        first = [first[0].x, first[0].y]
-                        break
-                    elif len(first) < 1:
-                        print('NO RESULTS')
-                        print('[R]etry OR BACK')
-                        func = input('> ')
-                        if func == 'R':
-                            print('RERUNNING')
-                        else:
-                            break
-            elif func == 'C':
-                first = secfinder()
-                print(first.number)
-            elif func == 'E':
-                while True:
-                    print('INPUT COORDS')
-                    try:
-                        targetX = int(input('X = '))
-                        targetY = int(input('Y = '))
-                        first = [targetX, targetY]
-                        targetsector = seccoordget(first)
-                        break
-                    except: err(' ! INVALID SECTOR !')
-            elif func == 'B':
-                break
-            else:
-                first = playercoords
-            print(f'''
-    SECOND POINT
-    {c('[ENTER] for here',ccol)}
-    {c('[S] for system (star)',stcol)}
-    {c('[C] for sector (rough)',scol)}
-    [E] to manually enter
-    [B] to escape this program
-''')
-            func = input('> ')
-            if func == 'S':
-                while True:
-                    try:
-                        second = indexFind(input('STAR NAME\n> '))
-                        if len(second) > 1:
-                            print('TOO MANY RESULTS: ', len(second))
-                            print('[N]arrow OR BACK')
-                            func = input('> ')
-                            if func == 'N':
-                                print('RERUNNING')
-                            else:
-                                break
-                        else:
-                            second = [second[0].x, second[0].y]
-                            break
-                    except:
-                        pass
-            elif func == 'C':
-                while True:
-                    # try:
-                        second = secfinder()
-                        print(second.number)
-                        break
-                    # except:
-                    #     pass
-            elif func == 'E':
-                while True:
-                    print('INPUT COORDS')
-                    try:
-                        targetX = int(input('X = '))
-                        targetY = int(input('Y = '))
-                        second = [targetX, targetY]
-                        targetsector = seccoordget(second)
-                        break
-                    except: err(' ! INVALID SECTOR !')
-            elif func == 'B':
-                break
-            else:
-                second = playercoords
-            try:
-                print(first,'\n',second)
-                print('DISTANCE BETWEEN P1 and P2:',dist2D(first,second))
-            except:
-                print('ERROR')
-
+# begin a long list of stupid if-then programs
     if func == 'exec':
-        exec(input('> '))
-
+        try:
+            exec(input('> '))
+        except: err('ERROR IN EXECUTION')
