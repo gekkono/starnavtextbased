@@ -1,18 +1,18 @@
-from __main__ import *
-
 consonants = list('BCDFGHJKLMNPQRSTVWXYZ')
 vowels = list('AEIOU')
 c = lambda t,col,back=None: colored(t,col,back)
 scol: str = 'light_cyan'; ccol: str = 'light_green'; stcol: str = 'light_yellow'
 err = lambda txt: cprint(txt,'white','on_light_red')
 
-def seccoordget(coords):
-    try:
-        for s in sectors:
-            if s.head[0] >= coords[0] > s.corner[0] and s.head[1] >= coords[1] > s.corner[1]:
-                return s
-    except:
-        err(' ! INVALID SECTOR !')
+# commented means implemented
+
+# def seccoordget(coords):
+#     try:
+#         for s in sectors:
+#             if s.head[0] >= coords[0] > s.corner[0] and s.head[1] >= coords[1] > s.corner[1]:
+#                 return s
+#     except:
+#         err(' ! INVALID SECTOR !')
 
 # noinspection PyTypeChecker  lol
 def indexFind(n):
@@ -26,9 +26,9 @@ def indexFind(n):
     print(f'found {len(indexfound)} instance(s) of {n}')
     return indexfound
 
-def dist2D(coords1, coords2):
-    # it looks scary but don't worry it's just a plug and chug
-    return math.sqrt((coords2[0] - coords1[0]) ** 2 + (coords2[1] - coords1[1]) ** 2)
+# def dist2D(coords1, coords2):
+#     # it looks scary but don't worry it's just a plug and chug
+#     return math.sqrt((coords2[0] - coords1[0]) ** 2 + (coords2[1] - coords1[1]) ** 2)
 
 
 sectorside, secperside = 0, 0

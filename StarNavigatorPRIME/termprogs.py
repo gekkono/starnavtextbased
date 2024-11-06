@@ -1,7 +1,4 @@
-from __main__ import *
-from funcstorage import *
-
-
+func = None
 # todo: please for the love of god make this less stupid
 if func == 'dist':
     while True:
