@@ -26,7 +26,7 @@ err = lambda txt: cprint(txt,'white','on_light_red')
 # ''','light_cyan')
 
 # config ============
-starTarget = 10000
+starTarget = 100000
 dim3 = False
 galaxydim = 40000000  # in LIGHT DAYS. the milky way is about 36500000 LD across but we "round up"
 # 40000000 is the default
@@ -102,7 +102,7 @@ def whereami(p=False):
         mysector = None
     if p:
         try:
-            print('\nIN SECTOR', c(mysector.number, scol))
+            print('IN SECTOR', c(mysector.number, scol))
             print('SECTOR BOUNDS:',c(f'{sectors[mysector.number].corner} {sectors[mysector.number].head}',scol))
         except:
             err(' ! INVALID SECTOR !')
@@ -171,9 +171,9 @@ def gen(starstomake):
 
 # end worldgen functions ------------------------------------------------------------------------------
 # begin generation
-print(f'CREATING {c(str(starTarget), 'light_magenta')} STARS\n'
-      f'(in english, that is {inflectengine.number_to_words(starTarget)}')
 divsectors2D()
+print(f'CREATING {c(str(starTarget), 'light_magenta')} STARS\n'
+      f'(in english, that is {inflectengine.number_to_words(starTarget)})')
 gen(starTarget)
 
 print(c('\nGENERATION PHASE COMPLETED','light_magenta'))
