@@ -32,50 +32,50 @@ def indexFind(n):
 
 
 sectorside, secperside = 0, 0
-def divsectors2D():
-    global sectorside, secperside  # declared global because i have to for some reason
-    sectorside = int(galaxydim*divfactor)
-    secperside = int(galaxydim/sectorside)  # declare int out of paranoia
-    sectorcount = secperside**2  # all of this math is probably unnecessary but i can't be fucked to rewrite it
-    corner = [-galaxydim/2,-galaxydim/2]
-    head = [-galaxydim/2+sectorside,-galaxydim/2+sectorside]
-    print(sectorcount, secperside, sectorside)
-    passes = 0
-    for y in range(secperside):
-        for h in range(secperside):
-            sectors.append(Sector(passes,head,corner))
-            corner = [corner[0]+sectorside, corner[1]]
-            head = [head[0]+sectorside, head[1]]
-            passes += 1
-        corner = [-galaxydim/2,corner[1]+sectorside]
-        head = [-galaxydim/2+sectorside,head[1]+sectorside]
-    print(f'''
-passes      - {passes}
-sectorcount - {sectorcount}
-galaxydim   - {galaxydim}
-sectorside  - {sectorside} (galaxydim/{divfactor})
-secperside  - {secperside}
-    ''')
+# def divsectors2D():
+#     global sectorside, secperside  # declared global because i have to for some reason
+#     sectorside = int(galaxydim*divfactor)
+#     secperside = int(galaxydim/sectorside)  # declare int out of paranoia
+#     sectorcount = secperside**2  # all of this math is probably unnecessary but i can't be fucked to rewrite it
+#     corner = [-galaxydim/2,-galaxydim/2]
+#     head = [-galaxydim/2+sectorside,-galaxydim/2+sectorside]
+#     print(sectorcount, secperside, sectorside)
+#     passes = 0
+#     for y in range(secperside):
+#         for h in range(secperside):
+#             sectors.append(Sector(passes,head,corner))
+#             corner = [corner[0]+sectorside, corner[1]]
+#             head = [head[0]+sectorside, head[1]]
+#             passes += 1
+#         corner = [-galaxydim/2,corner[1]+sectorside]
+#         head = [-galaxydim/2+sectorside,head[1]+sectorside]
+#     print(f'''
+# passes      - {passes}
+# sectorcount - {sectorcount}
+# galaxydim   - {galaxydim}
+# sectorside  - {sectorside} (galaxydim/{divfactor})
+# secperside  - {secperside}
+#     ''')
 
-def whereami(p=False):
-    global mysector
-    success = False
-    print('YOU ARE AT:', c(playercoords, ccol))
-    for s in sectors:
-        if s.head[0] >= playercoords[0] > s.corner[0] and s.head[1] >= playercoords[1] > s.corner[1]:  # head/corner is [x,y]
-            mysector = s
-            success = True
-            break
-    if not success:
-        mysector = None
-    if p:
-        try:
-            print('\nIN SECTOR', c(mysector.number, scol))
-            print('SECTOR BOUNDS:',c(f'{sectors[mysector.number].corner} {sectors[mysector.number].head}',scol))
-        except:
-            err(' ! INVALID SECTOR !')
-    try: return mysector.number
-    except: return None
+# def whereami(p=False):
+#     global mysector
+#     success = False
+#     print('YOU ARE AT:', c(playercoords, ccol))
+#     for s in sectors:
+#         if s.head[0] >= playercoords[0] > s.corner[0] and s.head[1] >= playercoords[1] > s.corner[1]:  # head/corner is [x,y]
+#             mysector = s
+#             success = True
+#             break
+#     if not success:
+#         mysector = None
+#     if p:
+#         try:
+#             print('\nIN SECTOR', c(mysector.number, scol))
+#             print('SECTOR BOUNDS:',c(f'{sectors[mysector.number].corner} {sectors[mysector.number].head}',scol))
+#         except:
+#             err(' ! INVALID SECTOR !')
+#     try: return mysector.number
+#     except: return None
 
 def readsec(sec,p=False):
     num = sec.number

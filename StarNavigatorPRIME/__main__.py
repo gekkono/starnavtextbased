@@ -109,6 +109,8 @@ def whereami(p=False):
     try: return mysector.number
     except: return None
 
+
+
 # end builtin functions ------------------------------------------------------------------------------
 # begin worldgen functions
 # these shouldn't be touched at all, even by me
@@ -163,12 +165,6 @@ def gen(starstomake):
                 s.stars.append(star)
     del starsmade
 
-# def distributestars():  # probably won't be needing this again -me before using it again
-#     for star in starsmade:
-#         for s in sectors:
-#             if s.head[0] >= star.x > s.corner[0] and s.head[1] >= star.y > s.corner[1]:  # head/corner is [x,y]
-#                 s.stars.append(star)
-
 # end worldgen functions ------------------------------------------------------------------------------
 # begin generation
 divsectors2D()
@@ -182,9 +178,6 @@ print(c('\nGENERATION PHASE COMPLETED','light_magenta'))
 # print(roughmap())
 
 # end game generation ------------------------------------------------------------------------------
-# while True:
-#     print('something has gone wrong')  # who even needs breakpoints
-#     time.sleep(1)
 
 termrunning = True
 while termrunning:
